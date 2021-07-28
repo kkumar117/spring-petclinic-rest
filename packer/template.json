@@ -29,11 +29,6 @@
   "provisioners": [
     {
       "type": "file",
-      "source": "./files/",
-      "destination": "/tmp/"
-    },
-    {
-      "type": "file",
       "source": "../",
       "destination": "/tmp/"
     },
