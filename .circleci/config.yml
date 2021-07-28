@@ -26,6 +26,7 @@ jobs:
           command: |
             [ -e checksum.txt ] && exit 0
             checksum=$(sh bin/checksum.sh)
+	    sh bin/build.sh $checksum
       - run:
           name: save checksum
           command: sh bin/checksum.sh > checksum.txt
