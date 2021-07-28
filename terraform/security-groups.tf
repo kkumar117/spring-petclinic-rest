@@ -8,7 +8,7 @@ resource "aws_security_group" "spring-petclinic-rest" {
     from_port        = 9966
     to_port          = 9966
     protocol         = "http"
-    cidr_blocks      = [module.vpc.cidr_block]
+    cidr_blocks      = [var.cidr_block]
   }
 
   tags = {
