@@ -43,7 +43,7 @@ jobs:
           command: |
             checksum=$(sh bin/checksum.sh)
             cd terraform
-            terraform plan -var ami_checksum=$$checksum
+            terraform init && terraform plan -var ami_checksum=$checksum
   terraform-apply:
     executor: terraform-agent
     steps:
@@ -53,7 +53,7 @@ jobs:
           command: |
             checksum=$(sh bin/checksum.sh)
             cd terraform
-            terraform apply -var ami_checksum=$$checksum
+            terraform init && terraform apply -var ami_checksum=$checksum
 
 workflows:
   version: 2
