@@ -13,7 +13,7 @@ data "aws_ami" "spring-petclinic-rest" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 1.66"
+  version = "~> 3.0"
 
   name = "spring-petclinic"
   cidr = var.cidr_block
