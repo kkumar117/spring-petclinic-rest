@@ -24,6 +24,7 @@ jobs:
       - run:
           name: packer build
           command: |
+            [ -e checksum.txt ] && exit 0
             checksum=$(sh bin/checksum.sh)
             echo "$checksum"
             sh bin/build.sh $checksum

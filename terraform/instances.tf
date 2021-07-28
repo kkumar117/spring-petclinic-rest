@@ -3,7 +3,7 @@ module "alb" {
   version = "~> 3.5"
 
   load_balancer_name = "spring-petclinic-rest"
-  security_groups    = [module.alb_sg.this_security_group_id, module.alb_http_sg.this_security_group_id]
+  security_groups    = [aws_security_group.rest-alb.id]
 
   subnets = module.vpc.public_subnets
   vpc_id  = module.vpc.vpc_id
@@ -34,18 +34,19 @@ module "alb" {
 }
 
 data "template_file" "launch_spring_bootstrap" {
-  template = file("user_data/config.sh.tpl")
+  template = file("user-data/config.sh.tpl")
 }
 
 module "asg" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "~> 2.9"
+  iam_instance_profile = aws_iam_instance_profile.ssm_managed_ec2_profile.name
 
   name            = "spring-petclinic-rest"
   lc_name         = "spring-petclinic-rest"
   image_id        = data.aws_ami.spring-petclinic-rest.id
   instance_type   = "t2.micro"
-  security_groups = [module.spring-petclinic-rest.this_security_group_id]
+  security_groups = [aws_security_group.spring-petclinic-rest.id]
 
   # Increase root block device size
   root_block_device = [
@@ -59,7 +60,7 @@ module "asg" {
   asg_name                  = "spring-petclinic-rest-asg"
   vpc_zone_identifier       = module.vpc.public_subnets
   health_check_type         = "EC2"
-  min_size                  =  var.min_instances
+  min_size                  = var.min_instances
   max_size                  = var.max_instances
   desired_capacity          = var.min_instances
   wait_for_capacity_timeout = 0

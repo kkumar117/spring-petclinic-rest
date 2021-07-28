@@ -1,32 +1,36 @@
-# Note: changing the version of the modules will cause the security groups to be recreated.
 
-module "spring-petclinic-rest" {
-  source  = "terraform-aws-modules/security-group/aws//modules/http-80"
-  version = "2.4.0"
-
+resource "aws_security_group" "spring-petclinic-rest" {
   name        = "spring-petclinic-rest"
   description = "Security group for web-server with HTTP ports open within VPC"
   vpc_id      = module.vpc.vpc_id
 
-  ingress_cidr_blocks = [module.vpc.vpc_cidr_block]
+  ingress {
+    from_port        = 9966
+    to_port          = 9966
+    protocol         = "http"
+    cidr_blocks      = [module.vpc.vpc_id]
+    ipv4_cidr_blocks = [module.vpc.vpc_cidr_block]
+  }
+
+  tags = {
+    Name = "spring-petclinic-rest"
+  }
 }
 
-module "alb_sg" {
-  source  = "terraform-aws-modules/security-group/aws//modules/https-443"
-  version = "2.4.0"
+resource "aws_security_group" "rest-alb" {
+  name        = "rest-alb"
+  description = "Security group for HTTP ports for public internet"
+  vpc_id      = module.vpc.vpc_id
 
-  name                = "alb_sg"
-  description         = "Security group for web-server with HTTPS ports open publicly"
-  vpc_id              = module.vpc.vpc_id
-  ingress_cidr_blocks = ["0.0.0.0/0"]
-}
+  ingress {
+    from_port        = 80
+    to_port          = 80
+    protocol         = "http"
+    cidr_blocks      = [module.vpc.vpc_id]
+    ipv4_cidr_blocks = ["0.0.0.0/0"]
+  }
 
-module "alb_http_sg" {
-  source  = "terraform-aws-modules/security-group/aws//modules/http-80"
-  version = "2.4.0"
-
-  name                = "alb_http_sg"
-  description         = "Security group for web-server with HTTP ports open publicly"
-  vpc_id              = module.vpc.vpc_id
-  ingress_cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name = "rest-alb"
+  }
 }
