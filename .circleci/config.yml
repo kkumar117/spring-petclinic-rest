@@ -1,0 +1,81 @@
+version: 2.1
+
+executors:
+  packer-agent:
+    docker:
+      - image: hashicorp/packer:latest
+
+  terraform-agent:
+    docker:
+      - image: docker.mirror.hashicorp.services/hashicorp/terraform:0.14.7
+
+jobs:
+  publish-ami:
+    executor: packer-agent
+    steps:
+      - checkout
+      - run:
+          name: build cache checksum content
+          command: |
+            sh bin/checksum.sh > packercontents-checksum.tmp
+            cat packercontents-checksum.tmp
+      - restore_cache:
+          key: packer-checksum-{{ checksum "packercontents-checksum.tmp" }}
+      - run:
+          name: packer build
+          command: |
+            [ -e checksum.txt ] && exit 0
+            checksum=$(sh bin/checksum.sh)
+      - run:
+          name: save checksum
+          command: sh bin/checksum.sh > checksum.txt
+      - save_cache:
+          key: packer-checksum-{{ checksum "packercontents-checksum.tmp" }}
+          paths:
+            - checksum.txt
+
+  terraform-plan:
+    executor: terraform-agent
+    steps:
+      - checkout
+      - run:
+          name: terraform plan
+          command: |
+            checksum=$(sh bin/checksum.sh)
+            cd terraform
+            terraform plan -var ami_checksum=$$checksum
+  terraform-apply:
+    executor: terraform-agent
+    steps:
+      - checkout
+      - run:
+          name: terraform apply
+          command: |
+            checksum=$(sh bin/checksum.sh)
+            cd terraform
+            terraform apply -var ami_checksum=$$checksum
+
+workflows:
+  version: 2
+  petclinic-loadbalancer:
+    jobs:
+      - publish-ami:
+          context: AMI
+      - terraform-plan:
+          context: AWS
+          requires:
+            - publish-ami
+          filters:
+            branches:
+              only: /^master$/
+      - apply-gate:
+          type: approval
+          requires:
+            - terraform-plan
+      - terraform-apply:
+          context: AWS
+          requires:
+            - apply-gate
+          filters:
+            branches:
+              only: /^master$/

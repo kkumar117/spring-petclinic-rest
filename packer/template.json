@@ -1,0 +1,45 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "ap-south-1",
+      "source_ami_filter": {
+        "filters": {
+          "name": "amzn2-ami-hvm-*-gp2",
+          "virtualization-type": "hvm",
+          "architecture": "x86_64",
+          "root-device-type": "ebs"
+        },
+        "owners": ["amazon"],
+        "most_recent": true
+      },
+      "instance_type": "t2.micro",
+      "ssh_username": "ec2-user",
+      "ami_name": "spring-petclinic-rest-{{timestamp}}",
+      "ami_description": "Checksum: {{user `checksum`}}",
+      "tags": {
+        "Name": "spring-petclinic-rest",
+        "Version": "{{user `version`}}",
+        "Checksum": "{{user `checksum`}}"
+      },
+      "force_delete_snapshot": true,
+      "ami_users": "519911613414"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "./files/",
+      "destination": "/tmp/"
+    },
+    {
+      "type": "file",
+      "source": "../",
+      "destination": "/tmp/"
+    },
+    {
+      "type": "shell",
+      "scripts": "./provision.sh"
+    }
+  ]
+}
