@@ -60,7 +60,7 @@ workflows:
   petclinic-loadbalancer:
     jobs:
       - publish-ami:
-          context: AMI
+          context: AWS
       - terraform-plan:
           context: AWS
           requires:
